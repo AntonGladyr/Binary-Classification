@@ -59,7 +59,7 @@ class LinearDiscriminantAnalysis:
         sigma_inv = np.linalg.inv(self.covariance_matrix)
         W = sigma_inv @ (MU1 - MU0)
         log_ratio = ((np.log(P1 / P0) - 1 / 2 * MU1.T @ sigma_inv @ MU1 + 1 / 2 * \
-                     MU0.T @ sigma_inv @ MU0) + X @ W).flatten()
+                     MU0.T @ sigma_inv @ MU0) + X.T @ W).flatten()
         #log_ratio = (np.log(P1 / P0) - 1/2 * (MU1 + MU0).T @ sigma_inv@(MU1 - MU0) + X.T @ sigma_inv@  (MU1 - MU0))
         return log_ratio
 
@@ -84,7 +84,7 @@ class LinearDiscriminantAnalysis:
 
     def predict(self, X):
         # 1 if decision_boundary > 0 else 0
-        log_ratios = self.compute_decision_boundary(X)
+        log_ratios = np.array([self.compute_decision_boundary(xx) for xx in X]).flatten()
         log_ratios[log_ratios > 0] = 1
         log_ratios[log_ratios < 0] = 0
         return log_ratios

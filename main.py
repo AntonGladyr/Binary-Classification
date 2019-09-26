@@ -39,6 +39,9 @@ def main():
     lda.fit(X, y)
     end = time.time()
     print('\nComputation time: {0}'.format(end - start))
+    predictions = lda.predict(X)
+    accuracy = lda.evaluate_acc(y, predictions)
+    print('Accuracy for the linear discriminant analysis model: {0}\n'.format(accuracy))
     visualizer.visualize(wine_dataset, WINE_COLUMNS)
     visualizer.visualize(cancer_dataset, CANCER_COLUMNS)
 
