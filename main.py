@@ -19,8 +19,15 @@ Created on 16 Sep 2019
 import numpy as np
 import cleaner
 import time
+import visualizer
 from linear_discriminant_analysis import LinearDiscriminantAnalysis
 
+CANCER_COLUMNS = ['Clump Thickness', 'Uniformity of Cell Size', 'Uniformity of Cell Shape',
+               'Marginal Adhesion', 'Single Epithelial Cell Size',
+               'Bare Nuclei', 'Bland Chromatin', 'Normal Nucleoli',
+                'Mitoses', 'Class']
+WINE_COLUMNS = ['fixed acidity', 'volatile acidity', 'citric acid', 'residual sugar', 'chlorides',
+                'free sulfur dioxide', 'total sulfur dioxide', 'density', 'pH', 'sulphates', 'alcohol', 'quality']
 
 def main():
     wine_dataset = cleaner.cleanWineDataset()
@@ -32,9 +39,9 @@ def main():
     lda.fit(X, y)
     end = time.time()
     print('\nComputation time: {0}'.format(end - start))
-    predictions = lda.predict(X)
-    accuracy = lda.evaluate_acc(y, predictions)
-    print('Accuracy for the linear discriminant analysis model: {0}\n'.format(accuracy))
+    visualizer.visualize(wine_dataset, WINE_COLUMNS)
+    visualizer.visualize(cancer_dataset, CANCER_COLUMNS)
+
 
 
 if __name__ == '__main__':
