@@ -1,15 +1,12 @@
-# office hours ask numpy and evaluation
-
-
 from LogisticRegression_sbakhit import LogisticRegression
 
-NUM_ITERATIONS = 1000
+maxit = 100000
 
 def learning_rate_constant(k):
-    return 0.0001
+    return 0.000001
 
 def learning_rate2(k):
-    return 1/1+k
+    return 1/(1+k)
 
 def k_fold_runner(logisticRegression: LogisticRegression, k: int):
     #TODO: shuffle
@@ -20,6 +17,9 @@ def k_fold_runner(logisticRegression: LogisticRegression, k: int):
         features
         logisticRegression.fit()
         starting_index = partition_size*(i+1)
+
+def evaluate(model, dataset):
+    model.predict()
 
 
 if __name__ == "__main__":
