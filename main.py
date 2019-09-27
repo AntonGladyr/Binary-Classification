@@ -61,6 +61,13 @@ def main():
     accuracy = lda.evaluate_acc(y_cancer, predictions)
     print('\tAccuracy of predictions on the cancer dataset ~multiple classes implementation~: {0}\n'.format(accuracy))
 
+    #changing the values of wine dataset for improving the accuracy
+    X_wine[X_wine[:, 6] > 100, 6] = 100
+    lda.fit(X_wine, y_wine)
+    predictions = lda.predict(X_wine)
+    accuracy = lda.evaluate_acc(y_wine, predictions)
+    print('\tAccuracy of predictions on the wine dataset: {0}'.format(accuracy))
+
 
     #visualizer.visualize_predictions(X, y, lda)
     #visualizer.visualize(wine_dataset, WINE_COLUMNS)
