@@ -48,7 +48,7 @@ def k_fold_runner(model, dataset, k, target_index):
         features_val = dataset_val[:, :target_index]
         targets_val = dataset_val[:, target_index]
 
-        model.fit_itr(features_train, targets_train, 1000)
+        model.fit(features_train, targets_train)
         print('itr %d with accuracy %f' % (i, np.mean(model.predict(features_val) == targets_val)))
         
         starting_index = partition_size*(i+1)
@@ -62,13 +62,13 @@ def split_dataset(features, targets, pct):
     Y_train, Y_val = targets[:train_pct_index], targets[train_pct_index:]
     return X_train, X_val, Y_train, Y_val
 
-accuracy = []
 def lr_accuracy(X_train, Y_train, X_val, Y_val):
     # lr = [learning_rate_constant1, learning_rate_constant2, learning_rate_constant3, learning_rate_constant4, 
     # learning_rate_constant5, learning_rate_constant6, learning_rate_constant7, learning_rate_constant8, learning_rate_func1]
 
     lr = [learning_rate_constant6, learning_rate_func1]
     
+    accuracy = []
     for rate in lr:
         model = LogisticRegression(rate)
         model.fit_itr(X_train, Y_train, 100000)
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-    k_fold_runner(LogisticRegression(learning_rate_func1), dataset, 5)
+    k_fold_runner(LogisticRegression(learning_rate_func1, 1000, itr=True), dataset, 5)
 
     # features = dataset[:, :TARGET_INDEX]
     # targets = dataset[:, TARGET_INDEX]
