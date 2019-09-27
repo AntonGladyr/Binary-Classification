@@ -2,14 +2,20 @@ import numpy as np
 
 WINE_DATA_PATH = 'resources/winequality-red.csv'
 CANCER_DATA_PATH = 'resources/breast-cancer-wisconsin.data'
-QUALITY_INDEX = 11
+WINE_QUALITY_INDEX = 11
+CANCER_CLASS_INDEX = 10
+label_dict = {'benign': 2, 'malignant': 4}
 
 def cleanCancerDataset() -> np.array:
     cancer_dataset = np.genfromtxt(CANCER_DATA_PATH, delimiter=',', skip_header=0)
-    
     # checking for missing/malformed values in the cancer dataset
-    if np.argwhere(cancer_dataset == '?').size > 0:
-        cancer_dataset = cancer_dataset[~(cancer_dataset == '?').any(axis=1)]
+    if np.argwhere(np.isnan(cancer_dataset)).size > 0:
+        cancer_dataset = np.array(cancer_dataset[~np.isnan(cancer_dataset).any(axis=1)])
+    # converting cancer classes to binary values
+    cancer_dataset[:, CANCER_CLASS_INDEX][cancer_dataset[:, CANCER_CLASS_INDEX] == label_dict['benign']] = 0
+    cancer_dataset[:, CANCER_CLASS_INDEX][cancer_dataset[:, CANCER_CLASS_INDEX] == label_dict['malignant']] = 1
+    # removing sample code numbers
+    cancer_dataset = cancer_dataset[:, 1:]
     # converting string-values to int type
     cancer_dataset = cancer_dataset.astype(int)
 
@@ -28,7 +34,7 @@ def cleanWineDataset() -> np.array:
         wine_dataset = np.array(wine_dataset[~np.isnan(wine_dataset).any(axis=1)])
 
     # converting quality ratings of wines to binary values
-    wine_dataset[:, QUALITY_INDEX][wine_dataset[:, QUALITY_INDEX] <= 5] = 0
-    wine_dataset[:, QUALITY_INDEX][wine_dataset[:, QUALITY_INDEX] >= 6] = 1
+    wine_dataset[:, WINE_QUALITY_INDEX][wine_dataset[:, WINE_QUALITY_INDEX] <= 5] = 0
+    wine_dataset[:, WINE_QUALITY_INDEX][wine_dataset[:, WINE_QUALITY_INDEX] >= 6] = 1
 
     return wine_dataset

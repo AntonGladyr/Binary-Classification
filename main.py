@@ -17,43 +17,56 @@ Created on 16 Sep 2019
 """
 
 import numpy as np
-from pandas import read_csv as read
+import cleaner
+import time
+import visualizer
+from linear_discriminant_analysis import LinearDiscriminantAnalysis
 
-WINE_DATA_PATH = "./resources/winequality-red.csv"
-CANCER_DATA_PATH = "./resources/breast-cancer-wisconsin.data"
-QUALITY_INDEX = 11
-
-
-def process_data():
-    # TODO: move data preprocessing here
-    print()
-
+CANCER_COLUMNS = ['Clump Thickness', 'Uniformity of Cell Size', 'Uniformity of Cell Shape',
+               'Marginal Adhesion', 'Single Epithelial Cell Size',
+               'Bare Nuclei', 'Bland Chromatin', 'Normal Nucleoli',
+                'Mitoses', 'Class']
+WINE_COLUMNS = ['fixed acidity', 'volatile acidity', 'citric acid', 'residual sugar', 'chlorides',
+                'free sulfur dioxide', 'total sulfur dioxide', 'density', 'pH', 'sulphates', 'alcohol', 'quality']
 
 def main():
-    wine_dataset = np.array(read(WINE_DATA_PATH, delimiter=";"))
-    cancer_dataset = np.array(read(CANCER_DATA_PATH, delimiter=",", header=None))
+    wine_dataset = cleaner.cleanWineDataset()
+    cancer_dataset = cleaner.cleanCancerDataset()
+    X_wine = wine_dataset[:, :-1]
+    y_wine = np.array(wine_dataset[:, -1])
+    X_cancer = cancer_dataset[:, :-1]
+    y_cancer = np.array(cancer_dataset[:, -1])
+    lda = LinearDiscriminantAnalysis()
 
-    # checking for missing values in the wine dataset
-    # if the resulting array is not empty
-    if np.argwhere(np.isnan(wine_dataset)).size > 0:
-        # deleting rows with missing values
-        #   np.isnan  - returns boolean with True where NaN, and False elsewhere;
-        #   .any(axis=1)  - reduces an m*n array to n with an logical or operation on the whole rows;
-        #   ~  - inverts True/False
-        wine_dataset = np.array(wine_dataset[~np.isnan(wine_dataset).any(axis=1)])
+    # test LDA on wine dataset
+    start = time.time()
+    lda.fit(X_wine, y_wine)
+    end = time.time()
+    print('\nLinear discriminant analysis model ~wine dataset~:')
+    print('\tComputation time: {0}'.format(end - start))
+    predictions = lda.predict(X_wine)
+    accuracy = lda.evaluate_acc(y_wine, predictions)
+    print('\tAccuracy of predictions on the wine dataset: {0}\n'.format(accuracy))
 
-    # converting quality ratings of wines to binary values
-    wine_dataset[:, QUALITY_INDEX][wine_dataset[:, QUALITY_INDEX] <= 5] = 0
-    wine_dataset[:, QUALITY_INDEX][wine_dataset[:, QUALITY_INDEX] >= 6] = 1
+    # test LDA on cancer dataset
+    start = time.time()
+    lda.fit(X_cancer, y_cancer)
+    end = time.time()
+    print('\nLinear discriminant analysis model ~cancer dataset~:')
+    print('\tComputation time: {0}'.format(end - start))
+    predictions = lda.predict(X_cancer)
+    accuracy = lda.evaluate_acc(y_cancer, predictions)
+    print('\tAccuracy of predictions on the cancer dataset: {0}'.format(accuracy))
+    predictions = [lda.predict_multiple_lda(xx) for xx in X_cancer]
+    accuracy = lda.evaluate_acc(y_cancer, predictions)
+    print('\tAccuracy of predictions on the cancer dataset ~multiple classes implementation~: {0}\n'.format(accuracy))
 
-    # checking for missing/malformed values in the cancer dataset
-    if np.argwhere(cancer_dataset == '?').size > 0:
-        cancer_dataset = cancer_dataset[~(cancer_dataset == '?').any(axis=1)]
-    # converting string-values to int type
-    cancer_dataset = cancer_dataset.astype(int)
 
-    print(wine_dataset)
-    print(cancer_dataset)
+    #visualizer.visualize_predictions(X, y, lda)
+    #visualizer.visualize(wine_dataset, WINE_COLUMNS)
+    #visualizer.visualize(cancer_dataset, CANCER_COLUMNS)
+    #visualizer.visualize_univariate(wine_dataset, WINE_COLUMNS)
+
 
 
 if __name__ == '__main__':
