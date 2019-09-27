@@ -39,7 +39,7 @@ def evaluate_acc(self, predictions, targets):
 
 def k_fold_runner(model, dataset, k, target_index):
     np.random.shuffle(dataset)
-    
+
     partition_size = dataset.shape[0] // k
     starting_index = 0
     for i in range(k):
@@ -48,13 +48,13 @@ def k_fold_runner(model, dataset, k, target_index):
 
         features_train = dataset_train[:, :target_index]
         targets_train = dataset_train[:, target_index]
-        
+
         features_val = dataset_val[:, :target_index]
         targets_val = dataset_val[:, target_index]
 
         model.fit(features_train, targets_train)
         print('itr %d with accuracy %f' % (i, evaluate_acc(model.predict(features_val), targets_val)))
-        
+
         starting_index = partition_size*(i+1)
 
 def split_dataset(features, targets, pct):
@@ -68,14 +68,14 @@ def lr_accuracy(X_train, Y_train, X_val, Y_val):
     # learning_rate_constant5, learning_rate_constant6, learning_rate_constant7, learning_rate_constant8, learning_rate_func1]
 
     lr = [learning_rate_constant6, learning_rate_func1]
-    
+
     accuracy = []
     for rate in lr:
         model = LogisticRegression(rate)
         model.fit_itr(X_train, Y_train, 100000)
         accuracy.append(evaluate_acc((model.predict(X_val), Y_val) * 100)
         print('accuracy = %f' % (accuracy[-1]))
-    
+
     y_pos = np.arange(len(lr))
     dd = accuracy # basic inormation
     plt.bar(y_pos,accuracy,width=0.3, alpha=0.9,align='center',color="yrgb")
