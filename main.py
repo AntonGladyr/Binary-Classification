@@ -32,18 +32,40 @@ WINE_COLUMNS = ['fixed acidity', 'volatile acidity', 'citric acid', 'residual su
 def main():
     wine_dataset = cleaner.cleanWineDataset()
     cancer_dataset = cleaner.cleanCancerDataset()
-    X = cancer_dataset[:, :-1]
-    y = np.array(cancer_dataset[:, -1])
-    start = time.time()
+    X_wine = wine_dataset[:, :-1]
+    y_wine = np.array(wine_dataset[:, -1])
+    X_cancer = cancer_dataset[:, :-1]
+    y_cancer = np.array(cancer_dataset[:, -1])
     lda = LinearDiscriminantAnalysis()
-    lda.fit(X, y)
+
+    # test LDA on wine dataset
+    start = time.time()
+    lda.fit(X_wine, y_wine)
     end = time.time()
-    print('\nComputation time: {0}'.format(end - start))
-    predictions = lda.predict(X)
-    accuracy = lda.evaluate_acc(y, predictions)
-    print('Accuracy for the linear discriminant analysis model: {0}\n'.format(accuracy))
-    visualizer.visualize(wine_dataset, WINE_COLUMNS)
-    visualizer.visualize(cancer_dataset, CANCER_COLUMNS)
+    print('\nLinear discriminant analysis model ~wine dataset~:')
+    print('\tComputation time: {0}'.format(end - start))
+    predictions = lda.predict(X_wine)
+    accuracy = lda.evaluate_acc(y_wine, predictions)
+    print('\tAccuracy of predictions on the wine dataset: {0}\n'.format(accuracy))
+
+    # test LDA on cancer dataset
+    start = time.time()
+    lda.fit(X_cancer, y_cancer)
+    end = time.time()
+    print('\nLinear discriminant analysis model ~cancer dataset~:')
+    print('\tComputation time: {0}'.format(end - start))
+    predictions = lda.predict(X_cancer)
+    accuracy = lda.evaluate_acc(y_cancer, predictions)
+    print('\tAccuracy of predictions on the cancer dataset: {0}'.format(accuracy))
+    predictions = [lda.predict_multiple_lda(xx) for xx in X_cancer]
+    accuracy = lda.evaluate_acc(y_cancer, predictions)
+    print('\tAccuracy of predictions on the cancer dataset ~multiple classes implementation~: {0}\n'.format(accuracy))
+
+
+    #visualizer.visualize_predictions(X, y, lda)
+    #visualizer.visualize(wine_dataset, WINE_COLUMNS)
+    #visualizer.visualize(cancer_dataset, CANCER_COLUMNS)
+    #visualizer.visualize_univariate(wine_dataset, WINE_COLUMNS)
 
 
 

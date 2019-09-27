@@ -3,8 +3,7 @@ Linear Discriminant Analysis
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+
 
 class LinearDiscriminantAnalysis:
     def __init__(self):
@@ -20,11 +19,12 @@ class LinearDiscriminantAnalysis:
         return np.array(mean_vectors)
 
     def __compute_covariance_matrix(self, X, y, mean_vectors):
-        covariance_matrix = np.zeros((9, 9))
+        _, columns_amount = X.shape
+        covariance_matrix = np.zeros((columns_amount, columns_amount))
         for cl, mv in zip(range(self.classes_amount), mean_vectors):
-            class_sc_mat = np.zeros((9, 9))  # scatter matrix for every class
+            class_sc_mat = np.zeros((columns_amount, columns_amount))  # scatter matrix for every class
             for row in X[y == cl]:
-                row, mv = row.reshape(9, 1), mv.reshape(9, 1)  # make column vectors
+                row, mv = row.reshape(columns_amount, 1), mv.reshape(columns_amount, 1)  # make column vectors
                 class_sc_mat += (row - mv).dot((row - mv).T)
             covariance_matrix += class_sc_mat  # sum class scatter matrices
         covariance_matrix = (1 / (X[:, 0].size - 2)) * covariance_matrix
@@ -40,15 +40,13 @@ class LinearDiscriminantAnalysis:
 
 
     def gaussian_pdf(self, X):
-        cost_list = np.array([])
         for MU in range(self.classes_amount):
             SIGMA_inv = np.linalg.inv(self.covariance_matrix)
             m, _ = self.covariance_matrix.shape
             denominator = np.sqrt((2 * np.pi)**m) * np.sqrt(np.linalg.det(self.covariance_matrix))
             exponent = -(1 / 2) * ((X - MU).T @ SIGMA_inv @ (X - MU))
-            cost = float((1. / denominator) * np.exp(exponent))
-            cost_list = np.append(cost_list, cost)
-        return 1 if cost_list[0] > cost_list[1] else 0
+            return float((1. / denominator) * np.exp(exponent))
+
 
     def compute_decision_boundary(self, X):
         # TODO: optimize
@@ -63,13 +61,10 @@ class LinearDiscriminantAnalysis:
         #log_ratio = (np.log(P1 / P0) - 1/2 * (MU1 + MU0).T @ sigma_inv@(MU1 - MU0) + X.T @ sigma_inv@  (MU1 - MU0))
         return log_ratio
 
-    def copmute_multiple_decision_boundary(self, X):
-        return
+    def linear_discriminant_func(self, X, MU, proba):
         #linear discriminant score function for a given class "k"
-
-        #return (np.log(pi_k) - 1 / 2 * (MU_k).T @ np.linalg.inv(SIGMA) @ (MU_k) + X.T @ np.linalg.inv(SIGMA) @ (
-        #    MU_k)).flatten()[0]
-
+        sigma_inv = np.linalg.inv(self.covariance_matrix)
+        return (X.T @ sigma_inv @ MU - 1 / 2 * MU.T @ sigma_inv @ MU + np.log(proba)).flatten()[0]
 
 
     def fit(self, X, y):
@@ -78,9 +73,6 @@ class LinearDiscriminantAnalysis:
         self.covariance_matrix = self.__compute_covariance_matrix(X, y, self.mean_vectors)
         self.likelihood_list = self.__compute_likelihood_list(y)
 
-    def predict_by_gaussian(self, X):
-        predictions = np.array([self.gaussian_pdf(xx) for xx in X])
-        return predictions
 
     def predict(self, X):
         # 1 if decision_boundary > 0 else 0
@@ -90,8 +82,13 @@ class LinearDiscriminantAnalysis:
         return log_ratios
 
     def predict_multiple_lda(self, X):
-        scores_list = np.array([])
+        # Returns the class for which the the linear discriminant score function is largest
+        scores_list = []
 
+        for mu, proba in zip(self.mean_vectors, self.likelihood_list):
+            score = self.linear_discriminant_func(X, mu, proba)
+            scores_list.append(score)
+        return np.argmax(scores_list)
 
     def evaluate_acc(self, y, predictions):
         return np.mean(predictions == y)
