@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 from logistic_regression import LogisticRegression
+from linear_discriminant_analysis import LinearDiscriminantAnalysis
 from matplotlib import pyplot as plt
 from cleaner import cleanWineDataset
 from cleaner import cleanCancerDataset
@@ -98,21 +99,52 @@ if __name__ == "__main__":
         TARGET_INDEX = 11
     elif sys.argv[1] == "cancer_dataset":
         dataset = cleanCancerDataset()
-        TARGET_INDEX = 'TBD'
+        TARGET_INDEX = 9
     else:
-        print('dataset specified not one of (wine_dataset, cancer_dataset)')
+        print('ERROR: dataset specified not. Accept one of (wine_dataset, cancer_dataset)')
         sys.exit(1)
-
-
-    k_fold_runner(LogisticRegression(learning_rate_func1, 1000, itr=True), dataset, 5)
-
-    # features = dataset[:, :TARGET_INDEX]
-    # targets = dataset[:, TARGET_INDEX]
-    # X_train, X_val, Y_train, Y_val = split_dataset(features, targets, 0.9)
     
-    # # logisticRegression = LogisticRegression(dataset, TARGET_INDEX, 1000, 0.0001)
-    # # logisticRegression.fit()
-    # # print(logisticRegression.parameters)
+    features = dataset[:, :TARGET_INDEX]
+    targets = dataset[:, TARGET_INDEX]
+    
+    if sys.argv[2] == 'train' or sys.argv[2] == 'validate':
+        split_pct = float(sys.argv[4])
+        X_train, X_val, Y_train, Y_val = split_dataset(features, targets, split_pct)
+
+        if sys.argv[3] == 'LR':
+            lr_func = globals()[sys.argv[5]]
+            method = sys.argv[6]
+            condition = float(sys.argv[7])
+
+            model = None
+            if method == 'itr':
+                model = LogisticRegression(lr_func, int(condition), itr=True)
+            elif method == 'threshold':
+                model = LogisticRegression(learning_rate_func1, condition, itr=False)
+            else:
+                print('ERROR: invalid method. Accept one of (itr, threshold)')
+                sys.exit(1)
+            
+            if sys.argv[2] == 'train':
+                model.fit(X_train, Y_train)
+                print( np.mean( model.predict(X_val) == Y_val ) )
+            else:
+                k = int(sys.argv[-1])
+                k_fold_runner(model, dataset, k, TARGET_INDEX)
+        elif sys.argv[3] == 'LDA':
+            model = LinearDiscriminantAnalysis()
+            if sys.argv[2] == 'train':
+                model.fit(X_train, Y_train)
+                print( '%f' % (np.mean( model.predict(X_val) == Y_val )) )
+            else:
+                k = int(sys.argv[-1])
+                k_fold_runner(model, dataset, k, TARGET_INDEX)
+        else:
+            print('ERROR: invalid model. Accept one of (LDA, LR)')
+            sys.exit(1)
+    else:
+        print('ERROR: invalid operation. Accept one of (train, validate)')
+        sys.exit(1)
 
     # lr_accuracy(X_train, Y_train, X_val, Y_val)
     sys.exit(0)
