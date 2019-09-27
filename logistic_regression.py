@@ -5,6 +5,7 @@ class LogisticRegression():
         self.lr_func = learning_rate_function
         self.parameters = None
         self.condition = condition
+        self.itr = itr
 
     def __logistic_function(self, training_example):
         a = np.dot(training_example, self.parameters.T)
@@ -31,7 +32,7 @@ class LogisticRegression():
             k += 1
     
     def fit(self, features, targets):
-        if(itr):
+        if(self.itr):
             self.__fit_itr(features, targets, self.condition)
         else:
             self.__fit_threshold(features, targets, self.condition)
