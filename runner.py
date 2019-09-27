@@ -34,6 +34,9 @@ def learning_rate_constant8(k):
 def learning_rate_func1(k):
     return 1/(1+k)
 
+def evaluate_acc(self, predictions, targets):
+    return np.mean(predictions == targets)
+
 def k_fold_runner(model, dataset, k, target_index):
     np.random.shuffle(dataset)
     
@@ -50,12 +53,9 @@ def k_fold_runner(model, dataset, k, target_index):
         targets_val = dataset_val[:, target_index]
 
         model.fit(features_train, targets_train)
-        print('itr %d with accuracy %f' % (i, np.mean(model.predict(features_val) == targets_val)))
+        print('itr %d with accuracy %f' % (i, evaluate_acc(model.predict(features_val), targets_val)))
         
         starting_index = partition_size*(i+1)
-
-def evaluate(model, dataset):
-    model.predict()
 
 def split_dataset(features, targets, pct):
     train_pct_index = int(pct * len(features))
@@ -73,8 +73,7 @@ def lr_accuracy(X_train, Y_train, X_val, Y_val):
     for rate in lr:
         model = LogisticRegression(rate)
         model.fit_itr(X_train, Y_train, 100000)
-       
-        accuracy.append(np.mean(model.predict(X_val) == Y_val) * 100)
+        accuracy.append(evaluate_acc((model.predict(X_val), Y_val) * 100)
         print('accuracy = %f' % (accuracy[-1]))
     
     y_pos = np.arange(len(lr))
@@ -127,7 +126,7 @@ if __name__ == "__main__":
             
             if sys.argv[2] == 'train':
                 model.fit(X_train, Y_train)
-                print( np.mean( model.predict(X_val) == Y_val ) )
+                print(evaluate_acc(model.predict(X_val), Y_val))
             else:
                 k = int(sys.argv[-1])
                 k_fold_runner(model, dataset, k, TARGET_INDEX)
@@ -135,7 +134,7 @@ if __name__ == "__main__":
             model = LinearDiscriminantAnalysis()
             if sys.argv[2] == 'train':
                 model.fit(X_train, Y_train)
-                print( '%f' % (np.mean( model.predict(X_val) == Y_val )) )
+                print(evaluate_acc(model.predict(X_val), Y_val))
             else:
                 k = int(sys.argv[-1])
                 k_fold_runner(model, dataset, k, TARGET_INDEX)
