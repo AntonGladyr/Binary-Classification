@@ -30,7 +30,7 @@ class LogisticRegression():
             prev_parameters = self.parameters
             self.parameters = self.__update_step(features, targets, k)
             k += 1
-    
+
     def fit(self, features, targets):
         if(self.itr):
             self.__fit_itr(features, targets, self.condition)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import time
 import argparse
 import numpy as np
 from logistic_regression import LogisticRegression as LR
@@ -45,12 +46,7 @@ def split_dataset(features, targets, pct):
     Y_train, Y_val = targets[:train_pct_index], targets[train_pct_index:]
     return X_train, X_val, Y_train, Y_val
 
-def lr_accuracy_plot(X_train, Y_train, X_val, Y_val):
-    # lr = [learning_rate_constant1, learning_rate_constant2, learning_rate_constant3, learning_rate_constant4, 
-    # learning_rate_constant5, learning_rate_constant6, learning_rate_constant7, learning_rate_constant8, learning_rate_func1]
-
-    lr = [learning_rate_constant6, learning_rate_func1]
-
+def lr_accuracy_plot(X_train, Y_train, X_val, Y_val, lr=[learning_rate_constant6, learning_rate_func1]):
     accuracy = []
     for rate in lr:
         model = LogisticRegression(rate, 1000)
@@ -68,23 +64,21 @@ def lr_accuracy_plot(X_train, Y_train, X_val, Y_val):
  
     plt.show()
 
-def maxitr_accuracy(X_train, Y_train, X_val, Y_val):
-    itrs = [1, 10, 1000, 10000, 100000, 1000000]
-    
+def maxitr_accuracy(X_train, Y_train, X_val, Y_val, maxitrs=[100, 1000, 10000, 100000]):    
     accuracy=[]
-    for maxitr in itrs:
+    for maxitr in maxitrs:
         model = LogisticRegression(learning_rate_func1, maxitr)
         model.fit(X_train,Y_train)
         model.predict(X_val)
 
         accuracy.append((evaluate_acc(model.predict(X_val), Y_val) * 100))
-        print('accuracy = %f' % (accuracy[-1]))
+        print('accuracy = %.2f' % (accuracy[-1]))
 
-    y_pos = np.arange(len(itrs))
+    y_pos = np.arange(len(maxitrs))
     dd = accuracy # basic inormation
     plt.bar(y_pos, accuracy, width=0.3, alpha=0.9, align='center', color="yrgb")
  
-    plt.xticks(y_pos, itrs)
+    plt.xticks(y_pos, maxitrs)
     plt.ylabel('accuracy')
     plt.title('Number of iterations VS accuracy')
  
@@ -125,7 +119,10 @@ if __name__ == "__main__":
         TARGET_INDEX = 11
     elif args.dataset == 'cancer_dataset':
         dataset = cleanCancerDataset()
-        TARGET_INDEX = 9
+        dataset = np.delete(dataset, 2, axis=1)
+        TARGET_INDEX = 8
+    np.random.seed(23)
+    np.random.shuffle(dataset)
     
     if args.which_model == 'LR':
         if args.m == 'itr':
@@ -145,8 +142,11 @@ if __name__ == "__main__":
         targets = dataset[:, TARGET_INDEX]
         X_train, X_val, Y_train, Y_val = split_dataset(features, targets, args.s)
 
+        start_time = time.time()
         model.fit(X_train, Y_train)
-        print(evaluate_acc(model.predict(X_val), Y_val))
+        print('training time elapsed: %.4f seconds' % ( (time.time() - start_time) ))
+
+        print('accuracy = %.2f' % (evaluate_acc(model.predict(X_val), Y_val)*100))
     elif args.op == 'validate':
         k_fold_runner(model, dataset, args.k, TARGET_INDEX)
 
