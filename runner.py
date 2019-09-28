@@ -1,40 +1,14 @@
 import sys
+import argparse
 import numpy as np
 from logistic_regression import LogisticRegression
 from linear_discriminant_analysis import LinearDiscriminantAnalysis
-from matplotlib import pyplot as plt
 from cleaner import cleanWineDataset
 from cleaner import cleanCancerDataset
+from matplotlib import pyplot as plt
+from learning_rates import *
 
-# Different learning rates
-def learning_rate_constant1(k):
-    return 1.0
-
-def learning_rate_constant2(k):
-    return 0.01
-
-def learning_rate_constant3(k):
-    return 0.001
-
-def learning_rate_constant4(k):
-    return 0.0001
-
-def learning_rate_constant5(k):
-    return 0.00001
-
-def learning_rate_constant6(k):
-    return 0.000001
-
-def learning_rate_constant7(k):
-    return 0.0000001
-
-def learning_rate_constant8(k):
-    return 0.00000001
-
-def learning_rate_func1(k):
-    return 1/(1+k)
-
-def evaluate_acc(self, predictions, targets):
+def evaluate_acc(predictions, targets):
     return np.mean(predictions == targets)
 
 def k_fold_runner(model, dataset, k, target_index):
@@ -63,7 +37,7 @@ def split_dataset(features, targets, pct):
     Y_train, Y_val = targets[:train_pct_index], targets[train_pct_index:]
     return X_train, X_val, Y_train, Y_val
 
-def lr_accuracy(X_train, Y_train, X_val, Y_val):
+def lr_accuracy_plot(X_train, Y_train, X_val, Y_val):
     # lr = [learning_rate_constant1, learning_rate_constant2, learning_rate_constant3, learning_rate_constant4, 
     # learning_rate_constant5, learning_rate_constant6, learning_rate_constant7, learning_rate_constant8, learning_rate_func1]
 
@@ -73,7 +47,7 @@ def lr_accuracy(X_train, Y_train, X_val, Y_val):
     for rate in lr:
         model = LogisticRegression(rate)
         model.fit_itr(X_train, Y_train, 100000)
-        accuracy.append(evaluate_acc((model.predict(X_val), Y_val) * 100)
+        accuracy.append((evaluate_acc(model.predict(X_val), Y_val) * 100))
         print('accuracy = %f' % (accuracy[-1]))
 
     y_pos = np.arange(len(lr))
@@ -87,63 +61,49 @@ def lr_accuracy(X_train, Y_train, X_val, Y_val):
     plt.show()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print('no dataset specified')
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='COMP551 LDA/LR runner')
+    parser.add_argument('dataset', type=str, metavar='', choices=['wine_dataset', 'cancer_dataset'], help='dataset specifier')
+    parser.add_argument('op', type=str, choices=['train', 'validate'], help='operation specifier')
+    parser.add_argument('--s', '-split_pct',  type=float, metavar='', help='percentage of data used for training')
 
-    dataset = None
-    TARGET_INDEX = None
-    if sys.argv[1] == "wine_dataset":
+    model_parsers = parser.add_subparsers(help='model specifier')
+
+    lda_p = model_parsers.add_parser('LDA')
+    lda_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
+    lda_p.set_defaults(which_model='LDA')
+
+    lr_p = model_parsers.add_parser('LR')
+    lr_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
+    lr_p.add_argument('--lr', '-learning_function', type=str, metavar='', required=True, help='name of learning function (must be present)')
+    lr_p.add_argument('--m', '-method', type=str, metavar='', choices=['itr', 'threshold'], required=True, help='termination criteria')
+    lr_p.add_argument('--t', '-terminating-value', type=float, metavar='', required=True, help='termination value')
+    lr_p.set_defaults(which_model='LR')
+
+    args = parser.parse_args()
+
+    if args.dataset == 'wine_dataset':
         dataset = cleanWineDataset()
         TARGET_INDEX = 11
-    elif sys.argv[1] == "cancer_dataset":
+    elif args.dataset == 'cancer_dataset':
         dataset = cleanCancerDataset()
         TARGET_INDEX = 9
-    else:
-        print('ERROR: dataset specified not. Accept one of (wine_dataset, cancer_dataset)')
-        sys.exit(1)
     
-    features = dataset[:, :TARGET_INDEX]
-    targets = dataset[:, TARGET_INDEX]
-    
-    if sys.argv[2] == 'train' or sys.argv[2] == 'validate':
-        split_pct = float(sys.argv[4])
-        X_train, X_val, Y_train, Y_val = split_dataset(features, targets, split_pct)
+    if args.which_model == 'LR':
+        if args.m == 'itr':
+            model = LogisticRegression(globals()[args.lr], int(args.t), itr=True)
+        elif args.m == 'threshold':
+            model = LogisticRegression(globals()[args.lr], args.t, itr=False)
+    elif args.which_model == 'LDA':
+        model = LinearDiscriminantAnalysis()
 
-        if sys.argv[3] == 'LR':
-            lr_func = globals()[sys.argv[5]]
-            method = sys.argv[6]
-            condition = float(sys.argv[7])
+    if args.op == 'train':
+        features = dataset[:, :TARGET_INDEX]
+        targets = dataset[:, TARGET_INDEX]
+        X_train, X_val, Y_train, Y_val = split_dataset(features, targets, args.s)
 
-            model = None
-            if method == 'itr':
-                model = LogisticRegression(lr_func, int(condition), itr=True)
-            elif method == 'threshold':
-                model = LogisticRegression(learning_rate_func1, condition, itr=False)
-            else:
-                print('ERROR: invalid method. Accept one of (itr, threshold)')
-                sys.exit(1)
-            
-            if sys.argv[2] == 'train':
-                model.fit(X_train, Y_train)
-                print(evaluate_acc(model.predict(X_val), Y_val))
-            else:
-                k = int(sys.argv[-1])
-                k_fold_runner(model, dataset, k, TARGET_INDEX)
-        elif sys.argv[3] == 'LDA':
-            model = LinearDiscriminantAnalysis()
-            if sys.argv[2] == 'train':
-                model.fit(X_train, Y_train)
-                print(evaluate_acc(model.predict(X_val), Y_val))
-            else:
-                k = int(sys.argv[-1])
-                k_fold_runner(model, dataset, k, TARGET_INDEX)
-        else:
-            print('ERROR: invalid model. Accept one of (LDA, LR)')
-            sys.exit(1)
-    else:
-        print('ERROR: invalid operation. Accept one of (train, validate)')
-        sys.exit(1)
+        model.fit(X_train, Y_train)
+        print(evaluate_acc(model.predict(X_val), Y_val))
+    elif args.op == 'validate':
+        k_fold_runner(model, dataset, args.k, TARGET_INDEX)
 
-    # lr_accuracy(X_train, Y_train, X_val, Y_val)
     sys.exit(0)
