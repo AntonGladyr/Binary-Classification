@@ -46,10 +46,7 @@ class LogisticRegression():
             self.__fit_threshold(features, targets, self.condition)
 
     def predict(self, features):
-        probabilities =  self.__logistic_function(features)
-        probabilities[:][probabilities[:] <= 0.5] = 0
-        probabilities[:][probabilities[:] > 0.5] = 1
-        return probabilities
+        return np.round(self.__logistic_function(features))
 
 
 if __name__ == "__main__":
