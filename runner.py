@@ -16,6 +16,7 @@ def evaluate_acc(predictions, targets):
 
 def k_fold_runner(model, dataset, k, target_index):
     np.random.shuffle(dataset)
+    accuracy_scores = []
 
     partition_size = dataset.shape[0] // k
     starting_index = 0
@@ -30,9 +31,13 @@ def k_fold_runner(model, dataset, k, target_index):
         targets_val = dataset_val[:, target_index]
 
         model.fit(features_train, targets_train)
-        print('itr %d with accuracy %f' % (i, evaluate_acc(model.predict(features_val), targets_val)))
+
+        accuracy_scores.append( evaluate_acc(model.predict(features_val), targets_val) )
+        print('itr %d with accuracy %.2f' % (i, accuracy_scores[-1]*100))
 
         starting_index = partition_size*(i+1)
+    
+    print('overall accuracy score of the model = %.2f' % ( (1/len(accuracy_scores))*sum(accuracy_scores)*100 ))
 
 def split_dataset(features, targets, pct):
     train_pct_index = int(pct * len(features))
@@ -51,7 +56,7 @@ def lr_accuracy_plot(X_train, Y_train, X_val, Y_val):
         model = LogisticRegression(rate, 1000)
         model.fit(X_train, Y_train)
         accuracy.append((evaluate_acc(model.predict(X_val), Y_val) * 100))
-        print('accuracy = %f' % (accuracy[-1]))
+        print('accuracy = %.2f' % (accuracy[-1]))
 
     y_pos = np.arange(len(lr))
     dd = accuracy # basic inormation
@@ -100,18 +105,20 @@ if __name__ == "__main__":
     lr_p = model_parsers.add_parser('LR')
     lr_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
     lr_p.add_argument('--lr', '-learning_function', type=str, metavar='', required=True, help='name of learning function (must be present)')
-    lr_p.add_argument('--m', '-method', type=str, metavar='', choices=['itr', 'threshold'], required=True, help='termination criteria')
+    lr_p.add_argument('--m', '-method', type=str, choices=['itr', 'threshold'], required=True, help='termination criteria')
     lr_p.add_argument('--t', '-terminating-value', type=float, metavar='', required=True, help='termination value')
     lr_p.set_defaults(which_model='LR')
 
     lr_vectorized_p = model_parsers.add_parser('LR_V')
     lr_vectorized_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
     lr_vectorized_p.add_argument('--lr', '-learning_function', type=str, metavar='', required=True, help='name of learning function (must be present)')
-    lr_vectorized_p.add_argument('--m', '-method', type=str, metavar='', choices=['itr', 'threshold'], required=True, help='termination criteria')
+    lr_vectorized_p.add_argument('--m', '-method', type=str, choices=['itr', 'threshold'], required=True, help='termination criteria')
     lr_vectorized_p.add_argument('--t', '-terminating-value', type=float, metavar='', required=True, help='termination value')
     lr_vectorized_p.set_defaults(which_model='LR_V')
 
     args = parser.parse_args()
+    if args.op == 'train' and args.s is None:
+        raise argparse.ArgumentError('split_pct must be set with train operation')
 
     if args.dataset == 'wine_dataset':
         dataset = cleanWineDataset()
