@@ -3,7 +3,8 @@
 import sys
 import argparse
 import numpy as np
-from logistic_regression import LogisticRegression
+from logistic_regression import LogisticRegression as LR
+from logistic_regression_vectorized import LogisticRegression as LR_V
 from linear_discriminant_analysis import LinearDiscriminantAnalysis
 from cleaner import cleanWineDataset
 from cleaner import cleanCancerDataset
@@ -103,6 +104,13 @@ if __name__ == "__main__":
     lr_p.add_argument('--t', '-terminating-value', type=float, metavar='', required=True, help='termination value')
     lr_p.set_defaults(which_model='LR')
 
+    lr_vectorized_p = model_parsers.add_parser('LR_V')
+    lr_vectorized_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
+    lr_vectorized_p.add_argument('--lr', '-learning_function', type=str, metavar='', required=True, help='name of learning function (must be present)')
+    lr_vectorized_p.add_argument('--m', '-method', type=str, metavar='', choices=['itr', 'threshold'], required=True, help='termination criteria')
+    lr_vectorized_p.add_argument('--t', '-terminating-value', type=float, metavar='', required=True, help='termination value')
+    lr_vectorized_p.set_defaults(which_model='LR_V')
+
     args = parser.parse_args()
 
     if args.dataset == 'wine_dataset':
@@ -114,9 +122,14 @@ if __name__ == "__main__":
     
     if args.which_model == 'LR':
         if args.m == 'itr':
-            model = LogisticRegression(globals()[args.lr], int(args.t), itr=True)
+            model = LR(globals()[args.lr], int(args.t), itr=True)
         elif args.m == 'threshold':
-            model = LogisticRegression(globals()[args.lr], args.t, itr=False)
+            model = LR(globals()[args.lr], args.t, itr=False)
+    elif args.which_model == 'LR_V':
+        if args.m == 'itr':
+            model = LR_V(globals()[args.lr], int(args.t), itr=True)
+        elif args.m == 'threshold':
+            model = LR_V(globals()[args.lr], args.t, itr=False)
     elif args.which_model == 'LDA':
         model = LinearDiscriminantAnalysis()
 
