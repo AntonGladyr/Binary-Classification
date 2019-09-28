@@ -28,6 +28,28 @@ CANCER_COLUMNS = ['Clump Thickness', 'Uniformity of Cell Size', 'Uniformity of C
                 'Mitoses', 'Class']
 WINE_COLUMNS = ['fixed acidity', 'volatile acidity', 'citric acid', 'residual sugar', 'chlorides',
                 'free sulfur dioxide', 'total sulfur dioxide', 'density', 'pH', 'sulphates', 'alcohol', 'quality']
+CANCER_CLASS_INDEX = 9
+
+
+def k_fold_runner(model, dataset, k, target_index):
+    np.random.shuffle(dataset)
+
+    partition_size = dataset.shape[0] // k
+    starting_index = 0
+    for i in range(k):
+        dataset_val = dataset[starting_index:partition_size * (i + 1), :]
+        dataset_train = np.delete(dataset, np.s_[starting_index:partition_size * (i + 1)], axis=0)
+
+        features_train = dataset_train[:, :target_index]
+        targets_train = dataset_train[:, target_index]
+
+        features_val = dataset_val[:, :target_index]
+        targets_val = dataset_val[:, target_index]
+
+        model.fit(features_train, targets_train)
+        print('itr %d with accuracy %f' % (i, np.mean(model.predict(features_val) == targets_val)))
+
+        starting_index = partition_size * (i + 1)
 
 def main():
     wine_dataset = cleaner.cleanWineDataset()
@@ -67,6 +89,9 @@ def main():
     predictions = lda.predict(X_wine)
     accuracy = lda.evaluate_acc(y_wine, predictions)
     print('\tAccuracy of predictions on the wine dataset: {0}'.format(accuracy))
+
+    #run k-fold cross validation
+    k_fold_runner(lda, cancer_dataset, 5, CANCER_CLASS_INDEX)
 
 
     #visualizer.visualize_predictions(X, y, lda)
