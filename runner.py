@@ -85,28 +85,28 @@ def maxitr_accuracy(X_train, Y_train, X_val, Y_val, maxitrs=[100, 1000, 10000, 1
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='COMP551 LDA/LR runner')
-    parser.add_argument('dataset', type=str, metavar='', choices=['wine_dataset', 'cancer_dataset'], help='dataset specifier')
+    parser.add_argument('dataset', type=str, choices=['wine_dataset', 'cancer_dataset'], help='dataset specifier')
     parser.add_argument('op', type=str, choices=['train', 'validate'], help='operation specifier')
-    parser.add_argument('--s', '-split_pct',  type=float, metavar='', help='percentage of data used for training')
+    parser.add_argument('--s', '-split_pct',  type=float, help='percentage of data used for training')
 
     model_parsers = parser.add_subparsers(help='model specifier')
 
     lda_p = model_parsers.add_parser('LDA')
-    lda_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
+    lda_p.add_argument('--k', type=int, default=5, help='k-fold specifier (default: 5)')
     lda_p.set_defaults(which_model='LDA')
 
     lr_p = model_parsers.add_parser('LR')
-    lr_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
-    lr_p.add_argument('--lr', '-learning_function', type=str, metavar='', required=True, help='name of learning function (must be present)')
+    lr_p.add_argument('--k', type=int, default=5, help='k-fold specifier (default: 5)')
+    lr_p.add_argument('--lr', '-learning_function', type=str, required=True, help='name of learning function (must be present)')
     lr_p.add_argument('--m', '-method', type=str, choices=['itr', 'threshold'], required=True, help='termination criteria')
-    lr_p.add_argument('--t', '-terminating-value', type=float, metavar='', required=True, help='termination value')
+    lr_p.add_argument('--t', '-terminating-value', type=float, required=True, help='termination value')
     lr_p.set_defaults(which_model='LR')
 
     lr_vectorized_p = model_parsers.add_parser('LR_V')
-    lr_vectorized_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
-    lr_vectorized_p.add_argument('--lr', '-learning_function', type=str, metavar='', required=True, help='name of learning function (must be present)')
+    lr_vectorized_p.add_argument('--k', type=int, default=5, help='k-fold specifier (default: 5)')
+    lr_vectorized_p.add_argument('--lr', '-learning_function', type=str, required=True, help='name of learning function (must be present)')
     lr_vectorized_p.add_argument('--m', '-method', type=str, choices=['itr', 'threshold'], required=True, help='termination criteria')
-    lr_vectorized_p.add_argument('--t', '-terminating-value', type=float, metavar='', required=True, help='termination value')
+    lr_vectorized_p.add_argument('--t', '-terminating-value', type=float, required=True, help='termination value')
     lr_vectorized_p.set_defaults(which_model='LR_V')
 
     args = parser.parse_args()
