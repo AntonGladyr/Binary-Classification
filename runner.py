@@ -1,41 +1,19 @@
 import sys
+import argparse
 import numpy as np
 from logistic_regression import LogisticRegression
-from matplotlib import pyplot as plt
+from linear_discriminant_analysis import LinearDiscriminantAnalysis
 from cleaner import cleanWineDataset
 from cleaner import cleanCancerDataset
+from matplotlib import pyplot as plt
+from learning_rates import *
 
-# Different learning rates
-def learning_rate_constant1(k):
-    return 1.0
-
-def learning_rate_constant2(k):
-    return 0.01
-
-def learning_rate_constant3(k):
-    return 0.001
-
-def learning_rate_constant4(k):
-    return 0.0001
-
-def learning_rate_constant5(k):
-    return 0.00001
-
-def learning_rate_constant6(k):
-    return 0.000001
-
-def learning_rate_constant7(k):
-    return 0.0000001
-
-def learning_rate_constant8(k):
-    return 0.00000001
-
-def learning_rate_func1(k):
-    return 1/(1+k)
+def evaluate_acc(predictions, targets):
+    return np.mean(predictions == targets)
 
 def k_fold_runner(model, dataset, k, target_index):
     np.random.shuffle(dataset)
-    
+
     partition_size = dataset.shape[0] // k
     starting_index = 0
     for i in range(k):
@@ -44,17 +22,14 @@ def k_fold_runner(model, dataset, k, target_index):
 
         features_train = dataset_train[:, :target_index]
         targets_train = dataset_train[:, target_index]
-        
+
         features_val = dataset_val[:, :target_index]
         targets_val = dataset_val[:, target_index]
 
         model.fit(features_train, targets_train)
-        print('itr %d with accuracy %f' % (i, np.mean(model.predict(features_val) == targets_val)))
-        
-        starting_index = partition_size*(i+1)
+        print('itr %d with accuracy %f' % (i, evaluate_acc(model.predict(features_val), targets_val)))
 
-def evaluate(model, dataset):
-    model.predict()
+        starting_index = partition_size*(i+1)
 
 def split_dataset(features, targets, pct):
     train_pct_index = int(pct * len(features))
@@ -62,23 +37,22 @@ def split_dataset(features, targets, pct):
     Y_train, Y_val = targets[:train_pct_index], targets[train_pct_index:]
     return X_train, X_val, Y_train, Y_val
 
-def lr_accuracy(X_train, Y_train, X_val, Y_val):
+def lr_accuracy_plot(X_train, Y_train, X_val, Y_val):
     # lr = [learning_rate_constant1, learning_rate_constant2, learning_rate_constant3, learning_rate_constant4, 
     # learning_rate_constant5, learning_rate_constant6, learning_rate_constant7, learning_rate_constant8, learning_rate_func1]
 
     lr = [learning_rate_constant6, learning_rate_func1]
-    
+
     accuracy = []
     for rate in lr:
-        model = LogisticRegression(rate)
-        model.fit_itr(X_train, Y_train, 100000)
-       
-        accuracy.append(np.mean(model.predict(X_val) == Y_val) * 100)
+        model = LogisticRegression(rate, 1000)
+        model.fit(X_train, Y_train)
+        accuracy.append((evaluate_acc(model.predict(X_val), Y_val) * 100))
         print('accuracy = %f' % (accuracy[-1]))
-    
+
     y_pos = np.arange(len(lr))
     dd = accuracy # basic inormation
-    plt.bar(y_pos,accuracy,width=0.3, alpha=0.9,align='center',color="yrgb")
+    plt.bar(y_pos, accuracy, width=0.3, alpha=0.9, align='center', color="yrgb")
  
     plt.xticks(y_pos, lr)
     plt.ylabel('accuracy')
@@ -86,33 +60,72 @@ def lr_accuracy(X_train, Y_train, X_val, Y_val):
  
     plt.show()
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print('no dataset specified')
-        sys.exit(1)
+def maxitr_accuracy(X_train, Y_train, X_val, Y_val):
+    itrs = [1, 10, 1000, 10000, 100000, 1000000]
+    
+    accuracy=[]
+    for maxitr in itrs:
+        model = LogisticRegression(learning_rate_func1, maxitr)
+        model.fit(X_train,Y_train)
+        model.predict(X_val)
 
-    dataset = None
-    TARGET_INDEX = None
-    if sys.argv[1] == "wine_dataset":
+        accuracy.append((evaluate_acc(model.predict(X_val), Y_val) * 100))
+        print('accuracy = %f' % (accuracy[-1]))
+
+    y_pos = np.arange(len(itrs))
+    dd = accuracy # basic inormation
+    plt.bar(y_pos, accuracy, width=0.3, alpha=0.9, align='center', color="yrgb")
+ 
+    plt.xticks(y_pos, itrs)
+    plt.ylabel('accuracy')
+    plt.title('Number of iterations VS accuracy')
+ 
+    plt.show()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='COMP551 LDA/LR runner')
+    parser.add_argument('dataset', type=str, metavar='', choices=['wine_dataset', 'cancer_dataset'], help='dataset specifier')
+    parser.add_argument('op', type=str, choices=['train', 'validate'], help='operation specifier')
+    parser.add_argument('--s', '-split_pct',  type=float, metavar='', help='percentage of data used for training')
+
+    model_parsers = parser.add_subparsers(help='model specifier')
+
+    lda_p = model_parsers.add_parser('LDA')
+    lda_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
+    lda_p.set_defaults(which_model='LDA')
+
+    lr_p = model_parsers.add_parser('LR')
+    lr_p.add_argument('--k', type=int, metavar='', default=5, help='k-fold specifier (default: 5)')
+    lr_p.add_argument('--lr', '-learning_function', type=str, metavar='', required=True, help='name of learning function (must be present)')
+    lr_p.add_argument('--m', '-method', type=str, metavar='', choices=['itr', 'threshold'], required=True, help='termination criteria')
+    lr_p.add_argument('--t', '-terminating-value', type=float, metavar='', required=True, help='termination value')
+    lr_p.set_defaults(which_model='LR')
+
+    args = parser.parse_args()
+
+    if args.dataset == 'wine_dataset':
         dataset = cleanWineDataset()
         TARGET_INDEX = 11
-    elif sys.argv[1] == "cancer_dataset":
+    elif args.dataset == 'cancer_dataset':
         dataset = cleanCancerDataset()
-        TARGET_INDEX = 'TBD'
-    else:
-        print('dataset specified not one of (wine_dataset, cancer_dataset)')
-        sys.exit(1)
-
-
-    k_fold_runner(LogisticRegression(learning_rate_func1, 1000, itr=True), dataset, 5)
-
-    # features = dataset[:, :TARGET_INDEX]
-    # targets = dataset[:, TARGET_INDEX]
-    # X_train, X_val, Y_train, Y_val = split_dataset(features, targets, 0.9)
+        TARGET_INDEX = 9
     
-    # # logisticRegression = LogisticRegression(dataset, TARGET_INDEX, 1000, 0.0001)
-    # # logisticRegression.fit()
-    # # print(logisticRegression.parameters)
+    if args.which_model == 'LR':
+        if args.m == 'itr':
+            model = LogisticRegression(globals()[args.lr], int(args.t), itr=True)
+        elif args.m == 'threshold':
+            model = LogisticRegression(globals()[args.lr], args.t, itr=False)
+    elif args.which_model == 'LDA':
+        model = LinearDiscriminantAnalysis()
 
-    # lr_accuracy(X_train, Y_train, X_val, Y_val)
+    if args.op == 'train':
+        features = dataset[:, :TARGET_INDEX]
+        targets = dataset[:, TARGET_INDEX]
+        X_train, X_val, Y_train, Y_val = split_dataset(features, targets, args.s)
+
+        model.fit(X_train, Y_train)
+        print(evaluate_acc(model.predict(X_val), Y_val))
+    elif args.op == 'validate':
+        k_fold_runner(model, dataset, args.k, TARGET_INDEX)
+
     sys.exit(0)

@@ -89,6 +89,3 @@ class LinearDiscriminantAnalysis:
             score = self.linear_discriminant_func(X, mu, proba)
             scores_list.append(score)
         return np.argmax(scores_list)
-
-    def evaluate_acc(self, y, predictions):
-        return np.mean(predictions == y)
