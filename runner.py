@@ -16,7 +16,6 @@ def evaluate_acc(predictions, targets):
     return np.mean(predictions == targets)
 
 def k_fold_runner(model, dataset, k, target_index):
-    np.random.shuffle(dataset)
     accuracy_scores = []
 
     partition_size = dataset.shape[0] // k
