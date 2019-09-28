@@ -45,18 +45,40 @@ def lr_accuracy_plot(X_train, Y_train, X_val, Y_val):
 
     accuracy = []
     for rate in lr:
-        model = LogisticRegression(rate)
-        model.fit_itr(X_train, Y_train, 100000)
+        model = LogisticRegression(rate, 1000)
+        model.fit(X_train, Y_train)
         accuracy.append((evaluate_acc(model.predict(X_val), Y_val) * 100))
         print('accuracy = %f' % (accuracy[-1]))
 
     y_pos = np.arange(len(lr))
     dd = accuracy # basic inormation
-    plt.bar(y_pos,accuracy,width=0.3, alpha=0.9,align='center',color="yrgb")
+    plt.bar(y_pos, accuracy, width=0.3, alpha=0.9, align='center', color="yrgb")
  
     plt.xticks(y_pos, lr)
     plt.ylabel('accuracy')
     plt.title('learning rate VS accuracy')
+ 
+    plt.show()
+
+def maxitr_accuracy(X_train, Y_train, X_val, Y_val):
+    itrs = [1, 10, 1000, 10000, 100000, 1000000]
+    
+    accuracy=[]
+    for maxitr in itrs:
+        model = LogisticRegression(learning_rate_func1, maxitr)
+        model.fit(X_train,Y_train)
+        model.predict(X_val)
+
+        accuracy.append((evaluate_acc(model.predict(X_val), Y_val) * 100))
+        print('accuracy = %f' % (accuracy[-1]))
+
+    y_pos = np.arange(len(itrs))
+    dd = accuracy # basic inormation
+    plt.bar(y_pos, accuracy, width=0.3, alpha=0.9, align='center', color="yrgb")
+ 
+    plt.xticks(y_pos, itrs)
+    plt.ylabel('accuracy')
+    plt.title('Number of iterations VS accuracy')
  
     plt.show()
 
