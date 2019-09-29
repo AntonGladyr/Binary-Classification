@@ -1,3 +1,13 @@
+'''
+Main runner
+
+For running details run python3 runner.py -h
+
+Ex:
+- python3 runner.py wine_dataset --s 0.9 train LDA
+- python3 runner.py wine_dataset validate LDA
+'''
+
 #!/usr/bin/env python
 
 import time
@@ -117,8 +127,8 @@ if __name__ == "__main__":
         TARGET_INDEX = 11
     elif args.dataset == 'cancer_dataset':
         dataset = cleanCancerDataset()
-        dataset = np.delete(dataset, 2, axis=1)
-        TARGET_INDEX = 8
+        # dataset = np.delete(dataset, 2, axis=1)
+        TARGET_INDEX = 9
     np.random.seed(23)
     np.random.shuffle(dataset)
     
@@ -147,4 +157,3 @@ if __name__ == "__main__":
         print('accuracy = %.2f' % (evaluate_acc(model.predict(X_val), Y_val)*100))
     elif args.op == 'validate':
         k_fold_runner(model, dataset, args.k, TARGET_INDEX)
-
