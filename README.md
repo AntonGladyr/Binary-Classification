@@ -5,6 +5,8 @@ To run the project the following libraries should be installed:
 *
     numpy
 *
+    argparse
+*
     matplotlib
  
 To run logistic regression on wine dataset with 7000 iterations and 0.001 learning rate. --s command sets the split for
