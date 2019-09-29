@@ -1,3 +1,15 @@
+'''
+Plots iterations vs. accuracy
+Plots learning rates vs. accuracy
+
+For running details run python3 plotter.py -h
+
+Ex:
+- python3 plotter.py lr --d wine_dataset
+- python3 plotter.py lr --d cancer_dataset
+- python3 plotter.py itr
+'''
+
 import argparse
 from logistic_regression_vectorized import LogisticRegression
 from runner import split_dataset, evaluate_acc

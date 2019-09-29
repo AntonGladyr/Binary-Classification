@@ -1,3 +1,13 @@
+'''
+Main runner
+
+For running details run python3 runner.py -h
+
+Ex:
+- python3 runner.py wine_dataset --s 0.9 train LDA
+- python3 runner.py wine_dataset validate LDA
+'''
+
 #!/usr/bin/env python
 
 import time
