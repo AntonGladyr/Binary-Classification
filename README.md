@@ -17,6 +17,9 @@ To run logistic linear discriminant analysis on wine dataset with splitting the 
 remaining for validation:
 `python runner.py wine_dataset --s 0.9 train LDA`
 
+Examples:
+`python runner.py cancer_dataset --s 0.9 train LR --lr learning_rate_constant3 --m itr --t 4000`
+
 For validation:
 `python runner.py cancer_dataset validate LR_V --lr learning_rate_constant3 --m itr --t 7000`
 `python runner.py wine_dataset validate LDA`
