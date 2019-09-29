@@ -33,3 +33,6 @@ learning_rate_constant7     =>       0.0000001
 learning_rate_constant8     =>       0.00000001
 learning_rate_func1         =>       1/1+k
 
+For visualizing run:
+`python plotter.py lr -d cancer_dataset`
+
