@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import time
 import argparse
 import numpy as np
@@ -149,4 +148,3 @@ if __name__ == "__main__":
     elif args.op == 'validate':
         k_fold_runner(model, dataset, args.k, TARGET_INDEX)
 
-    sys.exit(0)

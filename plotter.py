@@ -1,4 +1,4 @@
-import sys
+import argparse
 from logistic_regression_vectorized import LogisticRegression
 from runner import split_dataset, evaluate_acc
 from cleaner import cleanWineDataset, cleanCancerDataset
@@ -79,8 +79,7 @@ def plot_lr_acc(maxitr, dataset=False):
     y_pos = np.arange(len(lrs))
     plt.bar(y_pos, acc_list, width=0.3, alpha=0.9, align='center', color="yrgb")
     plt.xticks(y_pos, lrs)
-    
-    plt.legend(loc='upper left')
+
     plt.ylim(0.0, 1.0)
     plt.xlabel('Learning Rate')
     plt.ylabel('Accuracy')
@@ -88,8 +87,17 @@ def plot_lr_acc(maxitr, dataset=False):
     plt.show()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='COMP551 graphs plotter')
+    op_parsers = parser.add_subparsers(help='operation specifier')
+
+    lr_p = op_parsers.add_parser('lr')
+    lr_p.add_argument('--d', '-dataset', type=str, required=True, choices=['wine_dataset', 'cancer_dataset'], help='dataset specifier')
+    lr_p.set_defaults(which_op='lr')
+
+    itr_p = op_parsers.add_parser('itr')
+    itr_p.set_defaults(which_op='itr')
+
+    args = parser.parse_args()
 
     np.random.seed(23)
 
@@ -110,22 +118,13 @@ if __name__ == "__main__":
     features_cancer = cancer_dataset[:, :TARGET_index_cancer]
     targets_cancer = cancer_dataset[:, TARGET_index_cancer]
     X_train_cancer, X_val_cancer, Y_train_cancer, Y_val_cancer = split_dataset(features_cancer, targets_cancer, 0.9)
-    
-    op = sys.argv[1]
-    if op == 'itr':
-        plot_itr_acc()
-    elif op == 'lr':
-        if len(sys.argv) < 3:
-            sys.exit(1)
 
-        dataset = sys.argv[2]
-        if dataset == 'wine_dataset':
+    if args.which_op == 'itr':
+        plot_itr_acc()
+    else:
+        if args.d == 'wine_dataset':
             optimal_itr = 99000
             plot_lr_acc(optimal_itr, dataset=False)
-        elif dataset == 'cancer_dataset':
+        else:
             optimal_itr = 4000
             plot_lr_acc(optimal_itr, dataset=True)
-    else:
-        sys.exit(1)
-    
-    sys.exit(0)
